@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+
+	"github.com/silas-ss/task-tracker-cli/repository"
+	"github.com/silas-ss/task-tracker-cli/service"
 )
 
 const (
-	filePath string = "./tasks.json"
-
 	cmdAdd string = "add"
 	cmdList string = "list"
 	cmdUpdate string = "update"
@@ -17,25 +18,15 @@ const (
 	
 	cmdMarkDone string = "mark-done"
 	cmdMarkInProgress string = "mark-in-progress"
-
-	statusTodo = "todo"
-	statusInProgress = "in-progress"
-	statusDone = "done"
 )
 
 func main() {
-	fs := FileSystem{}
-	ts := TaskService{
-		TaskRepo: TaskRepository{
-			Fs: fs,
-		},
+	ts := service.TaskService{
+		TaskRepo: repository.NewTaskRepository(),
 	}
-
-	fs.initProgram()
 
 	flag.Parse()
 	if flag.NArg() == 0 {
-		// flag.Usage() -> TODO: implementar função para dar um help no comando
 		os.Exit(1)
 	}
 
@@ -46,27 +37,27 @@ func main() {
 	handleCommand(ts, action, param1, param2)
 }
 
-func handleCommand(ts TaskService, action string, params ...string) {
+func handleCommand(ts service.TaskService, action string, params ...string) {
 	param1 := params[0]
 	param2 := params[1]
 
 	switch action {
 	case cmdAdd:
-		ts.addTask(param1)
+		ts.AddTask(param1)
 	case cmdUpdate:
 		id, _ := strconv.Atoi(param1)
-		ts.updateTask(id, param2)
+		ts.UpdateTask(id, param2)
 	case cmdDelete:
 		id, _ := strconv.Atoi(param1)
-		ts.deleteTask(id)
+		ts.DeleteTask(id)
 	case cmdList:
-		ts.listTask(param1)
+		ts.ListTask(param1)
 	case cmdMarkInProgress:
 		id, _ := strconv.Atoi(param1)
-		ts.markTask(id, statusInProgress)
+		ts.MarkTaskWithStatus(id, service.StatusInProgress)
 	case cmdMarkDone:
 		id, _ := strconv.Atoi(param1)
-		ts.markTask(id, statusDone)
+		ts.MarkTaskWithStatus(id, service.StatusDone)
 	default:
 		fmt.Printf("Command not found")
 		os.Exit(1)
